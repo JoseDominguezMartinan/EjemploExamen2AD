@@ -6,9 +6,12 @@
 package examen2_1ad;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -51,17 +54,25 @@ public class Examen2_1AD {
         XMLInputFactory factory = XMLInputFactory.newInstance();
         XMLStreamReader reader = factory.createXMLStreamReader(new FileReader("platos.xml"));
         String codp = null;
-        String nome;
+        String nome = null;
         String codc;
         String peso;
         String graxa;
+        int parcial;
+        int total = 0;
+        File ficheiro=new File("totalgraxas.txt");
         while (reader.hasNext()) {
+            Platos plato=new Platos();
             reader.next();
             if (reader.getEventType() == XMLStreamConstants.START_ELEMENT) {
                 String a = reader.getLocalName();
                 if (a == "Plato") {
 
                     codp = reader.getAttributeValue(0);
+                    if(total!=0){
+                        System.out.println("TOTAL DE GRAXAS DO PLATO "+total);
+                        total=0;
+                    }
                     System.out.println("CODIGO DO PLATO: " + codp);
 
                 }
@@ -89,18 +100,34 @@ public class Examen2_1AD {
 
                                 System.out.println("codigo do componente: " + codc + " -> graxa por cada 100 gr=" + graxa);
                                 System.out.println("peso: " + peso);
+                                parcial=(Integer.parseInt(graxa)*Integer.parseInt(peso)/100);
+                                System.out.println("total de graxa do compoñente="+parcial+"\n");
+                                total=total+parcial;
+                                
                             }
+                           
 
-                        }
+                        } 
                         
-                    }
+                    }   
+                    
+                       
                         buRe.close();
                 }
+                  plato.setCodigo(codp);
+                  plato.setNome(nome);
+                  plato.setGraxaTotal(total);
 
+                  FileOutputStream filo = new FileOutputStream(ficheiro);
+            ObjectOutputStream obo=new ObjectOutputStream(filo);
+            obo.writeObject(plato); // escribimos o obxeto a serializar
+             obo.close(); // cerramos o fluxo
             }
+            
             reader.close();
 
         }
+        System.out.println("TOTAL DE GRAXAS DO PLATO "+total); 
     }
 
 }
