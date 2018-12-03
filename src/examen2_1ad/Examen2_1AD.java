@@ -33,6 +33,7 @@ public class Examen2_1AD {
      */
     public static Connection conexion = null;
 
+    
     public static Connection getConexion() throws SQLException {
         String usuario = "hr";
         String password = "hr";
