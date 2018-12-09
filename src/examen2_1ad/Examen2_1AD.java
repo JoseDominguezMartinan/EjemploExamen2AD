@@ -7,10 +7,12 @@ package examen2_1ad;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -33,7 +35,6 @@ public class Examen2_1AD {
      */
     public static Connection conexion = null;
 
-    
     public static Connection getConexion() throws SQLException {
         String usuario = "hr";
         String password = "hr";
@@ -50,7 +51,7 @@ public class Examen2_1AD {
         conexion.close();
     }
 
-    public static void main(String[] args) throws IOException, XMLStreamException, SQLException {
+    public static void main(String[] args) throws IOException, XMLStreamException, SQLException, ClassNotFoundException {
         // TODO code application logic here
         XMLInputFactory factory = XMLInputFactory.newInstance();
         XMLStreamReader reader = factory.createXMLStreamReader(new FileReader("platos.xml"));
@@ -61,18 +62,21 @@ public class Examen2_1AD {
         String graxa;
         int parcial;
         int total = 0;
-        File ficheiro=new File("totalgraxas.txt");
+        File ficheiro = new File("totalgraxas.txt");
+        FileOutputStream filo = new FileOutputStream(ficheiro);
+        ObjectOutputStream obo = new ObjectOutputStream(filo);
+        Platos platoNulo = null;
         while (reader.hasNext()) {
-            Platos plato=new Platos();
+            Platos plato = new Platos();
             reader.next();
             if (reader.getEventType() == XMLStreamConstants.START_ELEMENT) {
                 String a = reader.getLocalName();
                 if (a == "Plato") {
 
                     codp = reader.getAttributeValue(0);
-                    if(total!=0){
-                        System.out.println("TOTAL DE GRAXAS DO PLATO "+total);
-                        total=0;
+                    if (total != 0) {
+                        System.out.println("TOTAL DE GRAXAS DO PLATO " + total);
+                        total = 0;
                     }
                     System.out.println("CODIGO DO PLATO: " + codp);
 
@@ -101,34 +105,44 @@ public class Examen2_1AD {
 
                                 System.out.println("codigo do componente: " + codc + " -> graxa por cada 100 gr=" + graxa);
                                 System.out.println("peso: " + peso);
-                                parcial=(Integer.parseInt(graxa)*Integer.parseInt(peso)/100);
-                                System.out.println("total de graxa do compoñente="+parcial+"\n");
-                                total=total+parcial;
-                                
+                                parcial = (Integer.parseInt(graxa) * Integer.parseInt(peso) / 100);
+                                System.out.println("total de graxa do compoñente=" + parcial + "\n");
+                                total = total + parcial;
+
                             }
-                           
 
-                        } 
-                        
-                    }   
-                    
-                       
-                        buRe.close();
+                        }
+
+                    }
+
+                    buRe.close();
+                    plato.setCodigo(codp);
+                    plato.setNome(nome);
+                    plato.setGraxaTotal(total);
+
+                    obo.writeObject(plato); // escribimos o obxeto a serializar
                 }
-                  plato.setCodigo(codp);
-                  plato.setNome(nome);
-                  plato.setGraxaTotal(total);
 
-                  FileOutputStream filo = new FileOutputStream(ficheiro);
-            ObjectOutputStream obo=new ObjectOutputStream(filo);
-            obo.writeObject(plato); // escribimos o obxeto a serializar
-             obo.close(); // cerramos o fluxo
             }
-            
-            reader.close();
 
         }
-        System.out.println("TOTAL DE GRAXAS DO PLATO "+total); 
+        obo.writeObject(platoNulo);
+        obo.close(); // cerramos o fluxo
+
+        reader.close();
+
+        System.out.println("TOTAL DE GRAXAS DO PLATO " + total);
+        
+        /** lectura do ficheiro serializado para comprobar que se escribira correctamente
+         * 
+         */
+        ObjectInputStream obin = new ObjectInputStream(new FileInputStream(ficheiro));
+        Platos productoLido = new Platos();
+        while ((productoLido = (Platos) obin.readObject()) != null) { // gardamos a informacion lida no obxeto creado anteriormente mentres este non sexa nulo
+            System.out.println(productoLido.toString()); // imprimimos a información por pantalla 
+
+        }
+        obin.close();
     }
 
 }
